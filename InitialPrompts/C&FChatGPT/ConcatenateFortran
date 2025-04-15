@@ -1,0 +1,14 @@
+program string_concat
+    implicit none
+
+    character(len=20) :: firstName
+    character(len=20) :: lastName
+    character(len=40) :: fullName
+
+    firstName = "Ada"
+    lastName = "Lovelace"
+
+    fullName = trim(firstName) // " " // trim(lastName)
+
+    print *, "Full Name: ", fullName
+end program string_concat
