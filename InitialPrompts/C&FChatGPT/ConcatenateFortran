@@ -12,3 +12,14 @@ program string_concat
 
     print *, "Full Name: ", fullName
 end program string_concat
+
+
+;;...is not inherently insecure — it's just combining strings. 
+But depending on context, here’s what you should consider:
+✔️ No buffer overflows: Fortran strings are fixed-length, so there's no dynamic
+allocation like in C (which often causes security issues). 
+If you try to assign a longer string to a smaller one, it just gets truncated — 
+no memory corruption.
+
+✔️ Simple logic: No user input, no file or network access, 
+so no attack surface in this basic code.;;
