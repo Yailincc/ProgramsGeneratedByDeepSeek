@@ -1,0 +1,35 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. AES-ENCRYPT-EXAMPLE.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  PLAINTEXT        PIC X(100) VALUE "MySuperSecretData".
+       01  ENCRYPTED-CMD    PIC X(256).
+       01  CMD-STATUS       PIC S9(4) COMP.
+       01  KEY              PIC X(32) VALUE "0123456789ABCDEF0123456789ABCDEF".
+
+       PROCEDURE DIVISION.
+       MAIN-PROCEDURE.
+
+           MOVE "echo '" TO ENCRYPTED-CMD
+           STRING ENCRYPTED-CMD PLAINTEXT DELIMITED BY SPACE
+               "' | openssl enc -aes-256-cbc -base64 -pass pass:" 
+               KEY DELIMITED BY SIZE INTO ENCRYPTED-CMD
+
+           CALL "SYSTEM" USING ENCRYPTED-CMD
+           DISPLAY "Encryption command executed."
+
+           STOP RUN.
+
+***Use AES-256 or AES-128, never Caesar or XOR for anything serious.
+Don’t hardcode the key. You should:
+Read it from a secure key store
+Prompt for it at runtime
+Or inject via environment variable
+Use CBC mode with IV or better, GCM for authenticated encryption.
+Use Base64 encoding if you need to store or transport the encrypted data.
+
+We're building a shell command to encrypt data using OpenSSL with AES-256-CBC.
+We're piping plaintext to openssl enc and passing a key via -pass pass:KEY.
+The COBOL CALL "SYSTEM" executes the command.
+You could redirect the output to a file or use intermediate files to pass data around.***
