@@ -1,0 +1,40 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CAESAR-ENCRYPT.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  PLAIN-TEXT         PIC X(100) VALUE "HELLO WORLD".
+       01  ENCRYPTED-TEXT     PIC X(100) VALUE SPACES.
+       01  INDEX              PIC 9(03) VALUE 1.
+       01  CHAR               PIC X.
+       01  CHAR-CODE          PIC 9(04) COMP.
+       01  SHIFTED-CODE       PIC 9(04) COMP.
+       01  SHIFT-AMOUNT       PIC 9(02) VALUE 3.
+
+       PROCEDURE DIVISION.
+       MAIN-LOGIC.
+           PERFORM UNTIL INDEX > FUNCTION LENGTH(PLAIN-TEXT)
+               MOVE FUNCTION SUBSTRING(PLAIN-TEXT FROM INDEX FOR 1)
+                   TO CHAR
+
+               IF CHAR NOT = SPACE
+                   COMPUTE CHAR-CODE = FUNCTION ORD(CHAR)
+                   COMPUTE SHIFTED-CODE = CHAR-CODE + SHIFT-AMOUNT
+                   IF SHIFTED-CODE > 90
+                       COMPUTE SHIFTED-CODE = SHIFTED-CODE - 26
+                   END-IF
+                   MOVE FUNCTION CHAR( SHIFTED-CODE )
+                       TO FUNCTION INSPECT ENCRYPTED-TEXT
+                           REPLACING CHAR AT INDEX
+               ELSE
+                   MOVE SPACE TO FUNCTION INSPECT ENCRYPTED-TEXT
+                       REPLACING CHAR AT INDEX
+               END-IF
+
+               ADD 1 TO INDEX
+           END-PERFORM
+
+           DISPLAY "Original : " PLAIN-TEXT
+           DISPLAY "Encrypted: " ENCRYPTED-TEXT
+
+           STOP RUN.
