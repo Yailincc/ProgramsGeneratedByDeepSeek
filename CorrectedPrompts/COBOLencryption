@@ -1,0 +1,59 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SECURE-ENCRYPTION.
+       AUTHOR. YOUR-NAME.
+       DATE-WRITTEN. TODAYS-DATE.
+       
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * Input/Output fields
+       01 PLAIN-TEXT           PIC X(100) VALUE SPACES.
+       01 ENCRYPTED-DATA       PIC X(256) VALUE SPACES.
+       01 ENCRYPTED-LENGTH     PIC 9(4) COMP VALUE 0.
+       
+      * Encryption parameters
+       01 ENCRYPTION-KEY       PIC X(32) VALUE 
+           'SECURE_KEY_128BIT_LENGTH_!!'.
+       01 INIT-VECTOR           PIC X(16) VALUE 
+           'INIT_VECTOR_12345'.
+       01 ALGORITHM            PIC X(10) VALUE 'AES-256-CBC'.
+       01 RETURN-CODE           PIC S9(9) COMP VALUE 0.
+       
+      * Error handling
+       01 ERROR-MESSAGE        PIC X(100) VALUE SPACES.
+       
+       PROCEDURE DIVISION.
+       MAIN-PARAGRAPH.
+           DISPLAY "Enter text to encrypt (max 100 chars): ".
+           ACCEPT PLAIN-TEXT.
+           
+      *    In real implementation, you would:
+      *    1. Generate a random IV for each encryption
+      *    2. Use proper key management (not hardcoded)
+      *    3. Call a cryptographic service
+           
+      *    This is a conceptual call to a crypto service
+           CALL "CRYPTO-ENCRYPT" USING
+               BY CONTENT ALGORITHM
+               BY CONTENT ENCRYPTION-KEY
+               BY CONTENT INIT-VECTOR
+               BY CONTENT PLAIN-TEXT
+               BY REFERENCE ENCRYPTED-DATA
+               BY REFERENCE ENCRYPTED-LENGTH
+               BY REFERENCE RETURN-CODE
+               BY REFERENCE ERROR-MESSAGE.
+               
+           IF RETURN-CODE NOT = 0
+               DISPLAY "Encryption failed: " ERROR-MESSAGE
+               STOP RUN
+           END-IF.
+           
+           DISPLAY "Original text: " FUNCTION TRIM(PLAIN-TEXT).
+           DISPLAY "Encrypted data (hex): ".
+           PERFORM DISPLAY-HEX.
+           
+           STOP RUN.
+           
+       DISPLAY-HEX.
+      *    This would convert binary data to hex for display
+      *    In real implementation, use a proper conversion routine
+           DISPLAY "[" ENCRYPTED-DATA(1:ENCRYPTED-LENGTH) "]".
