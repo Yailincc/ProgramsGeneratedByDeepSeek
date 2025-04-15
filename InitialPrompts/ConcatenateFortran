@@ -1,1 +1,41 @@
+#USING FORTRAN 77 AND EARLIER
 
+      PROGRAM CONCATENATE
+      CHARACTER*10 str1, str2, result
+      
+      str1 = 'Hello'
+      str2 = 'World'
+      
+C     Concatenation using // operator
+      result = str1 // str2
+      WRITE(*,*) 'Concatenated: ', result
+      
+C     Concatenation with space in between
+      result = str1 // ' ' // str2
+      WRITE(*,*) 'With space: ', result
+      
+      END
+
+#USING FORTRAN 90/95 AND LATER
+program concatenate
+  implicit none
+  character(len=10) :: str1, str2
+  character(len=20) :: result
+  
+  str1 = 'Hello'
+  str2 = 'World'
+  
+  ! Simple concatenation
+  result = str1 // str2
+  print *, 'Concatenated: ', trim(result)
+  
+  ! With space in between
+  result = str1 // ' ' // str2
+  print *, 'With space: ', trim(result)
+  
+  ! Dynamic length strings (Fortran 2003+)
+  character(len=:), allocatable :: dyn_str
+  dyn_str = trim(str1) // ' ' // trim(str2)
+  print *, 'Dynamic length: ', dyn_str
+  
+end program concatenate
