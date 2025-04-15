@@ -1,0 +1,5 @@
+import secrets
+
+# Generate a secure random number with 256 bits (range: 0 to 2^256 - 1)
+secure_number = secrets.randbits(256)
+print(f"Secure random number: {secure_number}")
