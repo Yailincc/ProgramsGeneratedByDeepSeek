@@ -1,0 +1,57 @@
+program secure_string_concat
+    implicit none
+
+    character(len=20) :: firstName
+    character(len=20) :: lastName
+    character(len=41) :: fullName  ! +1 for space
+
+    logical :: inputIsValid
+
+    ! Example user input (in a real app you'd read from user or file)
+    firstName = "Ada"
+    lastName = "Lovelace"
+
+    ! Basic input validation
+    inputIsValid = isValidName(firstName) .and. isValidName(lastName)
+
+    if (inputIsValid) then
+        fullName = trim(adjustl(firstName)) // " " // trim(adjustl(lastName))
+        print *, "Full Name: ", fullName
+    else
+        print *, "Invalid input detected. Aborting."
+    end if
+
+contains
+
+    logical function isValidName(name)
+        character(len=*), intent(in) :: name
+        integer :: i, lenStr
+        character :: c
+        isValidName = .true.
+        lenStr = len_trim(name)
+
+        do i = 1, lenStr
+            c = name(i:i)
+            if (.not. (c >= 'A' .and. c <= 'Z') .and. &
+                    .not. (c >= 'a' .and. c <= 'z') .and. &
+                    .not. (c == '-' .or. c == ' ')) then
+                isValidName = .false.
+                return
+            end if
+        end do
+    end function isValidName
+
+end program secure_string_concat
+
+
+;;
+Feature	Why it helps
+adjustl()	Removes leading spaces — good for consistent formatting and avoiding accidental 
+shell injection if used later
+trim()	Removes trailing spaces
+isValidName()	Validates that input contains only safe characters (A–Z, a–z, hyphen, and space)
+No shell/file use	Keeps attack surface minimal
+This kind of sanitization/validation is critical if:
+You're building shell commands (e.g., CALL SYSTEM in Fortran)
+You're writing to logs, config files, or databases
+You're handling names or inputs coming from external sources;;
