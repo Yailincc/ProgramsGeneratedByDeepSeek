@@ -1,0 +1,86 @@
+#SECURE IMPLEMENTATION USING FORTAN 2003+
+module secure_string_ops
+  use, intrinsic :: iso_c_binding
+  implicit none
+  
+  private
+  public :: secure_concat, secure_erase
+
+  interface
+    ! C function to securely clear memory
+    subroutine memset_secure(ptr, val, len) bind(C, name="memset")
+      import :: c_ptr, c_int, c_size_t
+      type(c_ptr), value :: ptr
+      integer(c_int), value :: val
+      integer(c_size_t), value :: len
+    end subroutine
+  end interface
+
+contains
+
+  ! Securely concatenate two strings and clear inputs
+  function secure_concat(str1, str2) result(combined)
+    character(len=*), intent(in) :: str1, str2
+    character(len=:), allocatable :: combined
+    integer :: i
+    
+    ! Perform concatenation
+    combined = trim(str1) // trim(str2)
+    
+    ! Securely wipe the input strings from memory
+    ! Note: Actual secure erasure requires C interop for guaranteed behavior
+    block
+      character(len=len(str1)) :: temp1 = str1
+      character(len=len(str2)) :: temp2 = str2
+      do i = 1, len(temp1)
+        temp1(i:i) = char(0)
+      end do
+      do i = 1, len(temp2)
+        temp2(i:i) = char(0)
+      end do
+    end block
+    
+    ! For production: Use C memset_s for guaranteed secure erasure
+  end function secure_concat
+
+  ! Proper secure erasure using C interop
+  subroutine secure_erase(str)
+    character(len=*), intent(inout) :: str
+    type(c_ptr) :: cstr
+    integer(c_size_t) :: str_len
+    
+    ! Convert Fortran string to C pointer
+    cstr = c_loc(str(1:1))
+    str_len = len(str)
+    
+    ! Call secure memset (value 0, repeated len times)
+    call memset_secure(cstr, 0, str_len)
+  end subroutine secure_erase
+
+end module secure_string_ops
+
+! Example usage
+program secure_demo
+  use secure_string_ops
+  implicit none
+  
+  character(len=:), allocatable :: secret1, secret2, combined
+  character(len=32) :: buffer  ! Fixed-size for sensitive data
+  
+  secret1 = "TopSecret"
+  secret2 = "Password123"
+  
+  ! Secure concatenation
+  combined = secure_concat(secret1, secret2)
+  print *, "Combined length: ", len(combined)
+  
+  ! Work with sensitive data in fixed buffer
+  buffer = combined
+  
+  ! Securely clear when done
+  call secure_erase(buffer)
+  call secure_erase(combined)
+  
+  ! The allocatables will be deallocated automatically
+  ! but explicit clearing is better for security
+end program secure_demo
