@@ -38,3 +38,26 @@
            DISPLAY "Encrypted: " ENCRYPTED-TEXT
 
            STOP RUN.
+
+
+******GPT uses Caesar Cipher which is a very weak form of encryption by modern standards. 
+It only shifts letters, very small keysapce, no key management, no data integrity, susceptible to
+frequency analysis
+**Only Shifts Letters:
+It just shifts each letter by a fixed amount (e.g., +3). This means the pattern is predictable.
+
+Very Small Keyspace:
+There are only 25 possible shifts (since shifting by 26 is just the original text again). 
+So a brute-force attack takes just 25 tries max.
+
+No Key Management:
+The "key" (in this case, the number 3) is hard-coded and unprotected. 
+Anyone with access to the code can decrypt it instantly.
+
+No Data Integrity or Authentication:
+Anyone can alter the encrypted data, and there’s no way to know if it was tampered with.
+
+Susceptible to Frequency Analysis:
+Because the structure of the original text is preserved (e.g., common letters like E 
+and T still appear most frequently, just shifted), attackers can analyze letter 
+frequencies to crack it quickly.******
