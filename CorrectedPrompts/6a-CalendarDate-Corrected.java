@@ -1,12 +1,12 @@
 import java.io.Serializable;
 import java.util.Date;
 
-public final class CalendarDate implements Serializable {
+public final class CalendarEvent implements Serializable {
     private static final long serialVersionUID = 1L;
     private final Date date;
     private final String eventDescription;
 
-    public CalendarDate(Date date, String eventDescription) {
+    public CalendarEvent(Date date, String eventDescription) {
         // Input validation
         if (date == null || eventDescription == null) {
             throw new IllegalArgumentException("Null values not allowed");
@@ -31,6 +31,6 @@ public final class CalendarDate implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Date[%s]: %s", date, eventDescription);
+        return String.format("Event[%s]: %s", date, eventDescription);
     }
 }
