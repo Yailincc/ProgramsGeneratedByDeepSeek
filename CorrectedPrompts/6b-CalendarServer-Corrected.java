@@ -3,67 +3,86 @@ import java.io.*;
 import java.net.*;
 import java.security.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SecureCalendarServer {
     private static final int PORT = 12345;
-    private static final String KEYSTORE = "server.jks";
-    private static final String KEYSTORE_PASS = "s3cr3t!";
+    private static final int MAX_CONNECTIONS = 50;
+    private static final String KEYSTORE_PATH = "server_keystore.p12";
+    private static final String KEYSTORE_PASSWORD = "Keystore@Pass123";
+    private static final AtomicInteger activeConnections = new AtomicInteger(0);
 
-    public static void main(String[] args) throws Exception {
-        // 1. Setup TLS
-        SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
-        KeyStore ks = KeyStore.getInstance("PKCS12");
-        try (InputStream is = new FileInputStream(KEYSTORE)) {
-            ks.load(is, KEYSTORE_PASS.toCharArray());
-        }
+    public static void main(String[] args) {
+        System.setProperty("javax.net.ssl.keyStore", KEYSTORE_PATH);
+        System.setProperty("javax.net.ssl.keyStorePassword", KEYSTORE_PASSWORD);
+        System.setProperty("jdk.tls.server.protocols", "TLSv1.3");
+
+        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_CONNECTIONS);
         
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-        kmf.init(ks, KEYSTORE_PASS.toCharArray());
-        sslContext.init(kmf.getKeyManagers(), null, null);
-
-        // 2. Configure server
-        try (SSLServerSocket serverSocket = (SSLServerSocket) 
-            sslContext.getServerSocketFactory().createServerSocket(PORT)) {
+        try (SSLServerSocket serverSocket = createServerSocket()) {
+            System.out.println("🔐 Secure Calendar Server started on port " + PORT);
             
-            serverSocket.setNeedClientAuth(true); // Mutual TLS
-            serverSocket.setEnabledProtocols(new String[]{"TLSv1.3"});
-            System.out.println("🔒 Secure server started on port " + PORT);
-
-            // 3. Thread pool for clients
-            ExecutorService pool = Executors.newFixedThreadPool(10);
             while (true) {
-                SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
-                pool.execute(new ClientHandler(clientSocket));
+                try {
+                    if (activeConnections.get() >= MAX_CONNECTIONS) {
+                        Thread.sleep(100);
+                        continue;
+                    }
+                    
+                    SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
+                    activeConnections.incrementAndGet();
+                    threadPool.execute(new ClientHandler(clientSocket));
+                } catch (SSLHandshakeException e) {
+                    System.err.println("SSL Handshake failed: " + e.getMessage());
+                }
             }
+        } catch (Exception e) {
+            System.err.println("Server fatal error: " + e.getMessage());
+        } finally {
+            threadPool.shutdown();
         }
     }
 
-    private static class ClientHandler implements Runnable {
-        private final SSLSocket socket;
+    private static SSLServerSocket createServerSocket() throws Exception {
+        SSLServerSocketFactory factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+        SSLServerSocket socket = (SSLServerSocket) factory.createServerSocket(PORT);
+        socket.setEnabledCipherSuites(new String[] {
+            "TLS_AES_256_GCM_SHA384",
+            "TLS_CHACHA20_POLY1305_SHA256"
+        });
+        socket.setNeedClientAuth(true);
+        socket.setSoTimeout(30000);
+        return socket;
+    }
 
-        ClientHandler(SSLSocket socket) {
-            this.socket = socket;
+    private static class ClientHandler implements Runnable {
+        private final SSLSocket clientSocket;
+
+        ClientHandler(SSLSocket clientSocket) {
+            this.clientSocket = clientSocket;
         }
 
         @Override
         public void run() {
-            try (socket;
-                 ObjectInputStream ois = new ObjectInputStream(
-                     new LimitedInputStream(socket.getInputStream(), 1_000_000))) {
+            try (clientSocket;
+                 ObjectInputStream ois = new SecureObjectInputStream(
+                     new BufferedInputStream(
+                         new LimitedInputStream(clientSocket.getInputStream(), 1048576)))) {
                 
-                socket.setSoTimeout(10_000); // 10s timeout
+                clientSocket.setSoTimeout(10000);
+                Object received = ois.readObject();
                 
-                // Deserialize and validate
-                Object obj = ois.readObject();
-                if (!(obj instanceof CalendarEvent)) {
-                    throw new SecurityException("Invalid object type");
+                if (!(received instanceof CalendarDate)) {
+                    throw new SecurityException("Invalid object type received");
                 }
                 
-                CalendarEvent event = (CalendarEvent) obj;
-                System.out.println("✅ Received valid event: " + event);
+                CalendarDate dateEntry = (CalendarDate) received;
+                System.out.println("📅 Received valid entry: " + dateEntry);
                 
             } catch (Exception e) {
-                System.err.println("🚨 Client error: " + e.getMessage());
+                System.err.println("⚠️ Error handling client: " + e.getMessage());
+            } finally {
+                activeConnections.decrementAndGet();
             }
         }
     }
