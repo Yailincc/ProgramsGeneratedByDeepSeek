@@ -1,0 +1,34 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    int n;
+    cout << "Enter the number of elements: ";
+    cin >> n;
+
+    vector<int> arr(n);
+    cout << "Enter " << n << " integers: ";
+    for (int i = 0; i < n; ++i) {
+        cin >> arr[i];
+    }
+
+    sort(arr.begin(), arr.end());
+
+    int target;
+    cout << "Enter the target value to find its index: ";
+    cin >> target;
+
+    auto it = lower_bound(arr.begin(), arr.end(), target);
+
+    if (it != arr.end() && *it == target) {
+        int index = it - arr.begin();
+        cout << "Index of " << target << " in the sorted array is " << index << endl;
+    } else {
+        cout << target << " is not found in the sorted array." << endl;
+    }
+
+    return 0;
+}
