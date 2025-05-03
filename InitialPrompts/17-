@@ -1,0 +1,60 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+const string FILENAME = "password.txt";
+
+void storePassword() {
+    string password;
+    cout << "Enter password to store: ";
+    getline(cin, password);
+
+    ofstream file(FILENAME);
+    if (file.is_open()) {
+        file << password;
+        cout << "Password stored successfully!\n";
+    } else {
+        cerr << "Error: Could not open file for writing\n";
+    }
+}
+
+void retrievePassword() {
+    ifstream file(FILENAME);
+    if (file.is_open()) {
+        string password;
+        getline(file, password);
+        cout << "Stored password is: " << password << endl;
+    } else {
+        cerr << "No password found. Store one first.\n";
+    }
+}
+
+int main() {
+    while (true) {
+        cout << "\nPassword Manager\n";
+        cout << "1. Store password\n";
+        cout << "2. Retrieve password\n";
+        cout << "3. Exit\n";
+        cout << "Enter choice: ";
+
+        int choice;
+        cin >> choice;
+        cin.ignore(); // Clear input buffer
+
+        switch (choice) {
+            case 1:
+                storePassword();
+                break;
+            case 2:
+                retrievePassword();
+                break;
+            case 3:
+                cout << "Exiting...\n";
+                return 0;
+            default:
+                cerr << "Invalid choice. Try again.\n";
+        }
+    }
+}
