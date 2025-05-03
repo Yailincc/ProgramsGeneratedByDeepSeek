@@ -1,0 +1,36 @@
+from Crypto.Cipher import AES
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+from Crypto.Hash import SHA256
+import base64
+
+# Get user inputs
+password = input("Enter password: ").encode()
+plaintext = input("Enter plaintext: ")
+
+# Generate a random 16-byte salt
+salt = get_random_bytes(16)
+
+# Derive a 32-byte key using PBKDF2 with SHA-256
+key = PBKDF2(password, salt, dkLen=32, count=100000, hmac_hash_module=SHA256)
+
+# Generate a random 16-byte IV
+iv = get_random_bytes(16)
+
+# Create AES cipher object in CBC mode
+cipher = AES.new(key, AES.MODE_CBC, iv)
+
+# Pad the plaintext to be AES block size compatible
+padded_plaintext = pad(plaintext.encode('utf-8'), AES.block_size)
+
+# Perform encryption
+ciphertext = cipher.encrypt(padded_plaintext)
+
+# Combine salt, IV, and ciphertext for storage
+encrypted_data = salt + iv + ciphertext
+
+# Base64 encode the encrypted data for easy handling
+encrypted_b64 = base64.b64encode(encrypted_data).decode('utf-8')
+
+print("Encrypted data (base64):", encrypted_b64)
