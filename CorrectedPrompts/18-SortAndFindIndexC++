@@ -1,0 +1,62 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <limits>
+
+using namespace std;
+
+int main() {
+    long long input_size;
+    const int MAX_SIZE = 100000;
+
+    cout << "Enter the number of elements: ";
+    if (!(cin >> input_size)) {
+        cerr << "\nError: Invalid input for array size" << endl;
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return 1;
+    }
+
+    if (input_size <= 0 || input_size > MAX_SIZE) {
+        cerr << "\nError: Array size must be between 1 and " << MAX_SIZE << endl;
+        return 1;
+    }
+
+    int n = static_cast<int>(input_size);
+    vector<int> arr(n);
+
+    cout << "Enter " << n << " integers:\n";
+    for (int i = 0; i < n; ++i) {
+        while (true) {
+            if (cin >> arr[i]) {
+                break;
+            } else {
+                cerr << "Invalid input. Please enter valid integers only: ";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+        }
+    }
+
+    sort(arr.begin(), arr.end());
+
+    int target;
+    cout << "Enter the target value to find its index: ";
+    if (!(cin >> target)) {
+        cerr << "\nError: Invalid target value" << endl;
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return 1;
+    }
+
+    auto it = lower_bound(arr.begin(), arr.end(), target);
+
+    if (it != arr.end() && *it == target) {
+        int index = distance(arr.begin(), it);
+        cout << "\nIndex of " << target << " in sorted array: " << index << endl;
+    } else {
+        cout << "\nTarget value " << target << " not found in array" << endl;
+    }
+
+    return 0;
+}
