@@ -1,0 +1,26 @@
+import argparse
+import subprocess
+import sys
+
+def main():
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description='Process an email address.')
+    parser.add_argument('email', help='Email address to be processed')
+    args = parser.parse_args()
+
+    try:
+        # Option 1: Pass email as a command-line argument to external program
+        subprocess.run(['external_program', args.email], check=True)
+        
+        # Option 2: Feed email via standard input
+        # subprocess.run(['external_program'], input=args.email.encode(), check=True)
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error: External program failed with exit code {e.returncode}", file=sys.stderr)
+        sys.exit(1)
+    except FileNotFoundError:
+        print("Error: External program not found", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
